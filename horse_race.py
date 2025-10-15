@@ -1,66 +1,77 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from operator import truediv
 from random import randrange
 
-MIN_HORSES, MAX_HORSES, MAX_LENGTH, DICE, DISTANCE = 10, 12, 2400, 6, 23
-HORSE_STR = 'Cheval '
+MIN_HORSES, MAX_HORSES, MAX_DISTANCE, DICE, DISTANCE = 10, 12, 2400, 6, 23
+HORSE_STR = 'Horse '
 SPEED_LIST = [[0,1,1,1,2,2], [0,0,1,1,1,2], [0,0,1,1,1,2], [-1,0,0,1,1,1], [-1,0,0,0,1,1], [-2,-1,0,0,0,1], [-1,-1,0,0,0,3]]
 
 
-def roll_dice():
-    return randrange(0, DICE)
+def get_turn_distance(_speed):
+    return DISTANCE * _speed
 
 
-def process_race(horses_dict, turn_number, counter):
-    random_number = roll_dice()
-    for horse in horses_dict.values():
-        current_speed, current_distance = get_speed(horse), get_distance(horse)
-        next_speed = SPEED_LIST[current_speed][random_number]
-        if check_speed(current_speed, next_speed, current_distance):
-            current_speed += next_speed
-            current_distance = DISTANCE * random_number
-            horses_dict[HORSE_STR + str(counter+1)] = str(next_speed) + str(current_distance)
+def display_race(_horses, _i):
+    print(f"Horse {_i} -- Speed: {_horses[_i][0]} | Distance : {_horses[_i][1]}")
 
 
-def check_speed(current_speed, next_speed, distance):
-    if current_speed == 6 and next_speed == 3 or distance > MAX_LENGTH:
+def display_result(_result):
+    print(_result)
+
+
+def check_distance(_distance):
+    if _distance < MAX_DISTANCE:
+        return True
+    return False
+
+
+def check_speed(current_speed, next_speed):
+    if current_speed == 6 and next_speed == 3:
         return False
     return True
 
 
-def get_distance(str_value):
-    return int(str_value[:1])
+def get_distance(_horses, x):
+    return int(_horses[x][1])
 
 
-def get_speed(str_value):
-    return int(str_value[0][:1])
+def get_speed(_horses, x):
+    return int(_horses[x][0])
 
 
 if __name__ == "__main__":
     game_over = False
-    turn, race_distance = 0, 0
-    horses = dict(zip([HORSE_STR + str(n + 1) for n in range(MAX_HORSES)], ['00' for _ in range(MAX_HORSES)]))
+    turn = 0
+    horses = list([[0,0]] * MAX_HORSES)
 
     game_mode_str = input("Quel mode de jeu desirez vous ?\n 1 - Tiercé | 2 - Quarté | 3 - Quinté\n")
     game_mode = int(game_mode_str) if game_mode_str.isdecimal() else 1
     game_mode += 2  # define correct loop mode
 
-
-    count = 0
     while not game_over:
-        process_race(horses, turn, count)
+        result = []
+        for i in range(len(horses)):
+            random_number = randrange(0, DICE)
+            speed, distance = horses[i][0], horses[i][1]
+            turn_speed = SPEED_LIST[speed][random_number]
+            if check_speed(i, turn_speed):
+                horses[i][0] = turn_speed
+                horses[i][1] += get_turn_distance(turn_speed)
+            else:
+                horses[i][1] = -1
 
+            if not check_distance(distance):
+                for x in range(game_mode):
+                    if len(result) < game_mode:
+                        result.append(f"{HORSE_STR + str(i + x-1)} -- Position: {x+1} Distance : {horses[i][1]}")
+                    else:
+                        game_over = True
+                        break
+            display_race(horses, i)
         if game_over:
+            print(horses)
+            print(result)
             break
-
-        count += 1
-        print(horses)
-        if count == MAX_HORSES:
-            count = 0
-            turn += 1
-            if turn >= 50:
-                game_over = True
-                break
-
 
 
