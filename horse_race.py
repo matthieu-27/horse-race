@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from operator import truediv
 from random import randrange
 
 MIN_HORSES, MAX_HORSES, MAX_DISTANCE, DICE, DISTANCE = 10, 12, 2400, 6, 23
@@ -21,9 +20,7 @@ def display_result(_result):
 
 
 def check_distance(_distance):
-    if _distance < MAX_DISTANCE:
-        return True
-    return False
+    return True if _distance < MAX_DISTANCE else False
 
 
 def check_speed(current_speed, next_speed):
@@ -40,14 +37,23 @@ def get_speed(_horses, x):
     return int(_horses[x][0])
 
 
+def gen_horses():
+    _result = []
+    for _ in range(MAX_HORSES):
+        _result.append([0,0])
+    return list(_result)
+
+
 if __name__ == "__main__":
     game_over = False
     turn = 0
-    horses = list([[0,0]] * MAX_HORSES)
+
 
     game_mode_str = input("Quel mode de jeu desirez vous ?\n 1 - Tiercé | 2 - Quarté | 3 - Quinté\n")
     game_mode = int(game_mode_str) if game_mode_str.isdecimal() else 1
     game_mode += 2  # define correct loop mode
+
+    horses = gen_horses()
 
     while not game_over:
         result = []
@@ -61,14 +67,14 @@ if __name__ == "__main__":
             else:
                 horses[i][1] = -1
 
-            if not check_distance(distance):
-                for x in range(game_mode):
-                    if len(result) < game_mode:
-                        result.append(f"{HORSE_STR + str(i + x-1)} -- Position: {x+1} Distance : {horses[i][1]}")
-                    else:
-                        game_over = True
-                        break
+            if not check_distance(distance) and len(result) < game_mode:
+                result.append(f"Position {len(result) + 1}: {HORSE_STR + str(i)} (distance : {get_distance(horses, i)})")
+                if len(result) == game_mode:
+                    game_over = True
+                    break
+
             display_race(horses, i)
+
         if game_over:
             print(horses)
             print(result)
